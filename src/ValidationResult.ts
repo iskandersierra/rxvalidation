@@ -56,27 +56,57 @@ export const errorResult = (msg: string): MessageResult => ({
 const newLineIfNeeded = (text: string) =>
     text === "" || text.endsWith("\r\n") ? text : text + "\r\n";
 
-export const collectionResult = (results: ValidationResult[]): CollectionResult => {
-    const isError = results.some(r => r.isError);
-    const toShow = isError ? results.filter(r => r.isError) : results;
-    const message = toShow.reduce((acc, r) => newLineIfNeeded(acc) + r.message, "");
-    return {
-        kind: "collection",
-        isError,
-        results,
-        message,
+export const collectionResult =
+    (results: ValidationResult[]): CollectionResult => {
+        const isError = results.some(r => r.isError);
+        const toShow = isError ? results.filter(r => r.isError) : results;
+        const message = toShow.reduce((acc, r) => newLineIfNeeded(acc) + r.message, "");
+        return {
+            kind: "collection",
+            isError,
+            results,
+            message,
+        };
     };
-};
 
-export const objectResult = (properties: PropertyValidation[]): ObjectResult => {
-    const isError = properties.some(r => r.result.isError);
-    const toShow = isError ? properties.filter(p => p.result.isError) : properties;
-    const message = toShow
-        .reduce((acc, r) => newLineIfNeeded(acc) + newLineIfNeeded(r.property) + r.result.message, "");
-    return {
-        kind: "object",
-        isError,
-        properties,
-        message,
+export const objectResult =
+    (properties: PropertyValidation[]): ObjectResult => {
+        const isError = properties.some(r => r.result.isError);
+        const toShow = isError ? properties.filter(p => p.result.isError) : properties;
+        const message = toShow
+            .reduce((acc, r) => newLineIfNeeded(acc) + newLineIfNeeded(r.property) + r.result.message, "");
+        return {
+            kind: "object",
+            isError,
+            properties,
+            message,
+        };
     };
-};
+
+export const keepErrorsOnly =
+    (result: ValidationResult): ValidationResult => {
+        if (!result.isError) {
+            return successResult();
+        }
+        if (result.kind === "collection") {
+            const errorResults = result.results
+                .filter(r => r.isError)
+                .map(r => keepErrorsOnly(r));
+            if (errorResults.length === result.results.length) {
+                return result;
+            } else {
+                return collectionResult(errorResults);
+            }
+        } else if (result.kind === "object") {
+            const errorProperties = result.properties
+                .filter(p => p.result.isError)
+                .map(p => ({ property: p.property, result: keepErrorsOnly(p.result) }));
+            if (errorProperties.length === result.properties.length) {
+                return result;
+            } else {
+                return objectResult(errorProperties);
+            }
+        } else {
+            return result;
+        }
+    };
