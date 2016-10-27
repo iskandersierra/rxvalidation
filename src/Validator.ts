@@ -64,4 +64,3 @@ const throwToMessageValidator =
 
 export const ofThrowValidator =
   compose(ofMessageValidator, throwToMessageValidator);
-
