@@ -5,7 +5,7 @@ require("babel-core/register");
 require("babel-polyfill");
 
 import {
-  successResult, messageResult, warningResult,
+  successResult,
   errorResult, collectionResult, objectResult,
   keepErrorsOnly, Validator,
   isRequired,

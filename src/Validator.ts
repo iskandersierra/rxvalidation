@@ -3,13 +3,11 @@ import "rxjs/add/observable/of";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/switchMap";
 import { ValidationResult, successResult, errorResult } from "./ValidationResult";
-import { isEmpty, compose } from "./internalValidators";
+import { isEmpty, compose, compose3, compose4 } from "./internalValidators";
 
-export type Validator = (value$: Observable<any>) => Observable<ValidationResult>;
+export type Validator = (value: any) => Observable<ValidationResult>;
 
-export type OneTimeValidator = (value: any) => Observable<ValidationResult>;
-
-export type SingleValidator = (value: any) => ValidationResult;
+export type SyncValidator = (value: any) => ValidationResult;
 
 export type BoolValidator = (value: any) => boolean;
 
@@ -17,33 +15,28 @@ export type MessageValidator = (value: any) => string;
 
 export type ThrowValidator = (value: any) => void;
 
-export const ofOneTimeValidator =
-  (validator: OneTimeValidator): Validator =>
-    (value$: Observable<any>) =>
-      value$.switchMap(validator);
-
-export const ofSingleValidator =
-  (validator: SingleValidator): Validator =>
-    (value$: Observable<any>) =>
-      value$.map(validator);
+export const ofSyncValidator =
+  (validator: SyncValidator): Validator =>
+    compose(Observable.of, validator);
 
 export const ofBoolValidator =
   (errorMessage: string | ((v: any) => string)) =>
-    (validator: BoolValidator): Validator =>
-      (value$: Observable<any>) =>
-        value$.map(v => validator(v)
+    (validator: BoolValidator) => {
+      const syncValidator: SyncValidator = (value: any) =>
+        validator(value)
           ? successResult()
-          : errorResult(typeof errorMessage === "string" ? errorMessage : errorMessage(v)));
+          : errorResult(typeof errorMessage === "string" ? errorMessage : errorMessage(value));
+      return ofSyncValidator(syncValidator);
+    };
 
 export const ofMessageValidator =
-  (validator: MessageValidator): Validator =>
-    (value$: Observable<any>) =>
-      value$.map(v => {
-        const text = validator(v);
-        return isEmpty(text)
-          ? successResult()
-          : errorResult(text);
-      });
+  (validator: MessageValidator): Validator => {
+    const syncValidator: SyncValidator = (value: any) => {
+      const text = validator(value);
+      return isEmpty(text) ? successResult() : errorResult(text);
+    };
+    return ofSyncValidator(syncValidator);
+  };
 
 const throwToMessageValidator =
   (validator: ThrowValidator): MessageValidator =>

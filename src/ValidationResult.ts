@@ -1,27 +1,34 @@
+import * as assign from "object-assign";
 
-export interface MessageResult {
-    kind: "success" | "message" | "error" | "warning";
-    isError: boolean;
-    message: string;
+export type ValidationResultKind = "message" | "collection" | "object";
+export type ValidationResultType = "error" | "inconclusive" | "success";
+
+export interface ValidationResultBase {
+    readonly type: ValidationResultType;
+    readonly isError: boolean;
+    readonly isInconclusive: boolean;
+    readonly isSuccess: boolean;
+    readonly message: string;
 }
 
-export interface CollectionResult {
-    kind: "collection";
-    isError: boolean;
-    results: ValidationResult[];
-    message: string;
+export interface MessageResult extends ValidationResultBase {
+    readonly kind: "message";
+}
+
+export interface CollectionResult extends ValidationResultBase {
+    readonly kind: "collection";
+    readonly isError: boolean;
+    readonly results: ValidationResult[];
 }
 
 export interface PropertyValidation {
-    property: string;
-    result: ValidationResult;
+    readonly property: string;
+    readonly result: ValidationResult;
 }
 
-export interface ObjectResult {
-    kind: "object";
-    isError: boolean;
-    properties: PropertyValidation[];
-    message: string;
+export interface ObjectResult extends ValidationResultBase {
+    readonly kind: "object";
+    readonly properties: PropertyValidation[];
 }
 
 export type ValidationResult =
@@ -29,59 +36,63 @@ export type ValidationResult =
     CollectionResult |
     ObjectResult;
 
-export const successResult = (): MessageResult => ({
-    kind: "success",
-    isError: false,
-    message: "",
-});
-
-export const messageResult = (msg: string): MessageResult => ({
-    kind: "message",
-    isError: false,
-    message: msg,
-});
-
-export const warningResult = (msg: string): MessageResult => ({
-    kind: "warning",
-    isError: false,
-    message: msg,
-});
-
-export const errorResult = (msg: string): MessageResult => ({
-    kind: "error",
-    isError: true,
-    message: msg,
-});
-
 const newLineIfNeeded = (text: string) =>
     text === "" || text.endsWith("\r\n") ? text : text + "\r\n";
 
-export const collectionResult =
-    (results: ValidationResult[]): CollectionResult => {
-        const isError = results.some(r => r.isError);
-        const toShow = isError ? results.filter(r => r.isError) : results;
-        const message = toShow.reduce((acc, r) => newLineIfNeeded(acc) + r.message, "");
-        return {
-            kind: "collection",
-            isError,
-            results,
-            message,
-        };
-    };
+const baseResult = (type: ValidationResultType): ValidationResultBase => ({
+    type,
+    isError: type === "error",
+    isInconclusive: type === "inconclusive",
+    isSuccess: type === "success",
+    message: "",
+});
 
-export const objectResult =
-    (properties: PropertyValidation[]): ObjectResult => {
-        const isError = properties.some(r => r.result.isError);
-        const toShow = isError ? properties.filter(p => p.result.isError) : properties;
-        const message = toShow
-            .reduce((acc, r) => newLineIfNeeded(acc) + newLineIfNeeded(r.property) + r.result.message, "");
-        return {
-            kind: "object",
-            isError,
-            properties,
-            message,
-        };
-    };
+export const successResult = (message?: string): MessageResult =>
+    assign(baseResult("success"), {
+        kind: "message" as "message",
+        message: message || "",
+    });
+
+export const inconclusiveResult = (message?: string): MessageResult =>
+    assign(baseResult("inconclusive"), {
+        kind: "message" as "message",
+        message: message || "",
+    });
+
+export const errorResult = (message: string): MessageResult =>
+    assign(baseResult("error"), {
+        kind: "message" as "message",
+        message,
+    });
+
+export const collectionResult = (results: ValidationResult[]): CollectionResult => {
+    const type = results.map(r => r.type).reduce(getWorstType, "success");
+    const message = results.reduce((acc, r) => newLineIfNeeded(acc) + r.message, "");
+    return assign(baseResult(type), {
+        kind: "collection" as "collection",
+        results,
+        message,
+    });
+};
+
+export const objectResult = (properties: PropertyValidation[]): ObjectResult => {
+    const type = properties.map(r => r.result.type).reduce(getWorstType, "success");
+    const message = properties
+        .reduce((acc, r) => newLineIfNeeded(acc) + newLineIfNeeded(r.property) + r.result.message, "");
+    return assign(baseResult(type), {
+        kind: "object" as "object",
+        properties,
+        message,
+    });
+};
+
+export const getWorstType = (a: ValidationResultType, b: ValidationResultType): ValidationResultType => {
+    switch (a) {
+        case "error": return "error";
+        case "inconclusive": if (b === "error") { return b; } else { return a; }
+        default: return b;
+    }
+};
 
 export const keepErrorsOnly =
     (result: ValidationResult): ValidationResult => {
