@@ -1,6 +1,6 @@
 import * as assign from "object-assign";
 
-export type ValidationResultKind = "message" | "collection" | "object";
+export type ValidationResultKind = "success" | "message" | "collection" | "object";
 export type ValidationResultType = "error" | "inconclusive" | "success";
 
 export interface ValidationResultBase {
@@ -12,7 +12,7 @@ export interface ValidationResultBase {
 }
 
 export interface MessageResult extends ValidationResultBase {
-    readonly kind: "message";
+    readonly kind: "success" | "message";
 }
 
 export interface CollectionResult extends ValidationResultBase {
@@ -47,7 +47,13 @@ const baseResult = (type: ValidationResultType): ValidationResultBase => ({
     message: "",
 });
 
-export const successResult = (message?: string): MessageResult =>
+export const successResult = (): MessageResult =>
+    assign(baseResult("success"), {
+        kind: "success" as "success",
+        message: "",
+    });
+
+export const messageResult = (message?: string): MessageResult =>
     assign(baseResult("success"), {
         kind: "message" as "message",
         message: message || "",
@@ -86,12 +92,64 @@ export const objectResult = (properties: PropertyValidation[]): ObjectResult => 
     });
 };
 
+export const propertiesResult = (properties: { [name: string]: ValidationResult }): ObjectResult => {
+    const props: PropertyValidation[] =
+        Object.keys(properties).map(key => ({ property: key, result: properties[key] }));
+    return objectResult(props);
+};
+
 export const getWorstType = (a: ValidationResultType, b: ValidationResultType): ValidationResultType => {
     switch (a) {
         case "error": return "error";
         case "inconclusive": if (b === "error") { return b; } else { return a; }
         default: return b;
     }
+};
+
+export const reduceCollection = (results: ValidationResult[], result: ValidationResult): ValidationResult[] => {
+    if (results.length === 0) {
+        if (result.kind === "success") { return []; }
+        if (result.kind === "collection") {
+            return result.results.reduce(reduceCollection, []);
+        }
+        return [result];
+    }
+    if (result.kind === "success") { return results; }
+    if (result.kind === "message") {
+        if (!results.find(r => r.kind === result.kind && r.message === result.message)) {
+            return [...results, result];
+        } else {
+            return results;
+        }
+    } else if (result.kind === "collection") {
+        return result.results.reduce(reduceCollection, results);
+    } else {
+        return [...results, result];
+    }
+};
+
+export const combineResults = (results: ValidationResult[]): ValidationResult => {
+    const reduced = results.reduce(reduceCollection, []);
+    if (reduced.length === 0) { return successResult(); }
+    if (reduced.length === 1) {
+        const result = reduced[0];
+        if (result.kind === "collection") {
+            return combineResults(result.results);
+        } else {
+            return result;
+        }
+    }
+    return collectionResult(reduced);
+};
+
+export const combine = (...results: ValidationResult[]): ValidationResult => {
+    // if (a.kind === "success") { return b; }
+    // if (b.kind === "success") { return a; }
+    return combineResults(results);
+};
+
+export const combineWorst = (a: ValidationResult, b: ValidationResult): ValidationResult => {
+    return a;
 };
 
 export const keepErrorsOnly =

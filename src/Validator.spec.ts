@@ -11,7 +11,7 @@ import "rxjs/add/operator/toPromise";
 
 import {
   ValidationResult, successResult, ObjectResult, CollectionResult,
-  errorResult, collectionResult, objectResult,
+  errorResult, collectionResult, objectResult, messageResult,
   keepErrorsOnly, Validator, BoolValidator, MessageValidator,
   SyncValidator, ThrowValidator,
   ofSyncValidator, ofBoolValidator, ofMessageValidator,
@@ -41,12 +41,12 @@ describe("ofSyncValidator", () => {
   }); //    Sanity checks
 
   describe("Given a sync Validator", () => {
-    const sValidator: SyncValidator = (v: any) => successResult("message #" + v);
+    const sValidator: SyncValidator = (v: any) => messageResult("message #" + v);
     const validator = ofSyncValidator(sValidator);
 
-    testValidationResults(validator, 1, [ successResult("message #1") ]);
-    testValidationResults(validator, "hello", [ successResult("message #hello") ]);
-    testValidationResults(validator, false, [ successResult("message #false") ]);
+    testValidationResults(validator, 1, [messageResult("message #1")]);
+    testValidationResults(validator, "hello", [messageResult("message #hello")]);
+    testValidationResults(validator, false, [messageResult("message #false")]);
   }); //    Given a sync Validator
 }); //    ofOneTimeValidator
 
@@ -59,25 +59,25 @@ describe("ofBoolValidator", () => {
   describe("Given a succeeding BooleanValidator with custom message", () => {
     const bValidator: BoolValidator = (v: any) => true;
     const validator = ofBoolValidator("custom error message")(bValidator);
-    testValidationResults(validator, 1, [ successResult() ]);
-    testValidationResults(validator, "hello", [ successResult() ]);
-    testValidationResults(validator, false, [ successResult() ]);
+    testValidationResults(validator, 1, [successResult()]);
+    testValidationResults(validator, "hello", [successResult()]);
+    testValidationResults(validator, false, [successResult()]);
   }); //    Given a succeeding BooleanValidator with custom message
 
   describe("Given a failing BooleanValidator with custom message", () => {
     const bValidator: BoolValidator = (v: any) => false;
     const validator = ofBoolValidator("custom error message")(bValidator);
-    testValidationResults(validator, 1, [ errorResult("custom error message") ]);
-    testValidationResults(validator, "hello", [ errorResult("custom error message") ]);
-    testValidationResults(validator, false, [ errorResult("custom error message") ]);
+    testValidationResults(validator, 1, [errorResult("custom error message")]);
+    testValidationResults(validator, "hello", [errorResult("custom error message")]);
+    testValidationResults(validator, false, [errorResult("custom error message")]);
   }); //    Given a failing BooleanValidator with custom message
 
   describe("Given a failing BooleanValidator with custom message factory", () => {
     const bValidator: BoolValidator = (v: any) => false;
     const validator = ofBoolValidator(v => "custom error message " + v)(bValidator);
-    testValidationResults(validator, 1, [ errorResult("custom error message 1") ]);
-    testValidationResults(validator, "hello", [ errorResult("custom error message hello") ]);
-    testValidationResults(validator, false, [ errorResult("custom error message false") ]);
+    testValidationResults(validator, 1, [errorResult("custom error message 1")]);
+    testValidationResults(validator, "hello", [errorResult("custom error message hello")]);
+    testValidationResults(validator, false, [errorResult("custom error message false")]);
   }); //    Given a failing BooleanValidator with custom message factory
 }); //    ofOneTimeValidator
 
@@ -90,17 +90,17 @@ describe("ofMessageValidator", () => {
   describe("Given a succeeding message Validator", () => {
     const mValidator: MessageValidator = (v: any) => "";
     const validator = ofMessageValidator(mValidator);
-    testValidationResults(validator, 1, [ successResult() ]);
-    testValidationResults(validator, "hello", [ successResult() ]);
-    testValidationResults(validator, false, [ successResult() ]);
+    testValidationResults(validator, 1, [successResult()]);
+    testValidationResults(validator, "hello", [successResult()]);
+    testValidationResults(validator, false, [successResult()]);
   }); //    Given a succeeding message Validator
 
   describe("Given a failing message Validator", () => {
     const mValidator: MessageValidator = (v: any) => "error message #" + v;
     const validator = ofMessageValidator(mValidator);
-    testValidationResults(validator, 1, [ errorResult("error message #1") ]);
-    testValidationResults(validator, "hello", [ errorResult("error message #hello") ]);
-    testValidationResults(validator, false, [ errorResult("error message #false") ]);
+    testValidationResults(validator, 1, [errorResult("error message #1")]);
+    testValidationResults(validator, "hello", [errorResult("error message #hello")]);
+    testValidationResults(validator, false, [errorResult("error message #false")]);
   }); //    Given a failing message Validator
 }); //    ofOneTimeValidator
 
@@ -113,9 +113,9 @@ describe("ofThrowValidator", () => {
   describe("Given a succeeding throw Validator", () => {
     const tValidator: ThrowValidator = (v: any) => { return; };
     const validator = ofThrowValidator(tValidator);
-    testValidationResults(validator, 1, [ successResult() ]);
-    testValidationResults(validator, "hello", [ successResult() ]);
-    testValidationResults(validator, false, [ successResult() ]);
+    testValidationResults(validator, 1, [successResult()]);
+    testValidationResults(validator, "hello", [successResult()]);
+    testValidationResults(validator, false, [successResult()]);
   }); //    Given a succeeding throw Validator
 
   describe("Given a failing throw Validator throwing Error", () => {
@@ -123,9 +123,9 @@ describe("ofThrowValidator", () => {
       throw new Error("error message #" + v);
     };
     const validator = ofThrowValidator(tValidator);
-    testValidationResults(validator, 1, [ errorResult("error message #1") ]);
-    testValidationResults(validator, "hello", [ errorResult("error message #hello") ]);
-    testValidationResults(validator, false, [ errorResult("error message #false") ]);
+    testValidationResults(validator, 1, [errorResult("error message #1")]);
+    testValidationResults(validator, "hello", [errorResult("error message #hello")]);
+    testValidationResults(validator, false, [errorResult("error message #false")]);
   }); //    Given a failing throw Validator
 
   describe("Given a failing throw Validator throwing messages", () => {
@@ -133,9 +133,9 @@ describe("ofThrowValidator", () => {
       throw ("error message #" + v);
     };
     const validator = ofThrowValidator(tValidator);
-    testValidationResults(validator, 1, [ errorResult("error message #1") ]);
-    testValidationResults(validator, "hello", [ errorResult("error message #hello") ]);
-    testValidationResults(validator, false, [ errorResult("error message #false") ]);
+    testValidationResults(validator, 1, [errorResult("error message #1")]);
+    testValidationResults(validator, "hello", [errorResult("error message #hello")]);
+    testValidationResults(validator, false, [errorResult("error message #false")]);
   }); //    Given a failing throw Validator
 
   describe("Given a failing throw Validator throwing weird", () => {
@@ -143,8 +143,8 @@ describe("ofThrowValidator", () => {
       throw v;
     };
     const validator = ofThrowValidator(tValidator);
-    testValidationResults(validator, 1, [ errorResult("Invalid value") ]);
-    testValidationResults(validator, "hello", [ errorResult("hello") ]);
-    testValidationResults(validator, false, [ errorResult("Invalid value") ]);
+    testValidationResults(validator, 1, [errorResult("Invalid value")]);
+    testValidationResults(validator, "hello", [errorResult("hello")]);
+    testValidationResults(validator, false, [errorResult("Invalid value")]);
   }); //    Given a failing throw Validator
 }); //    ofOneTimeValidator
