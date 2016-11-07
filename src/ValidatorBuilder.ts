@@ -41,8 +41,6 @@ export const ValidatorMonad = {
   message,
   inconclusive,
   error,
-
-
 };
 
 // export class ValidatorBuilder {
