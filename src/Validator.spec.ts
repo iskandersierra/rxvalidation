@@ -12,7 +12,7 @@ import "rxjs/add/operator/toPromise";
 import {
   ValidationResult, successResult, ObjectResult, CollectionResult,
   errorResult, collectionResult, objectResult, messageResult,
-  keepErrorsOnly, Validator, BoolValidator, MessageValidator,
+  Validator, BoolValidator, MessageValidator,
   SyncValidator, ThrowValidator,
   ofSyncValidator, ofBoolValidator, ofMessageValidator,
   ofThrowValidator,

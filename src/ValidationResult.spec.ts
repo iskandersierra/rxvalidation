@@ -8,8 +8,7 @@ import {
   ValidationResult, ValidationResultType,
   successResult, messageResult, inconclusiveResult, errorResult,
   collectionResult, objectResult, propertiesResult,
-  getWorstType, combine, combineWorst,
-  keepErrorsOnly,
+  getWorstType,
   reduceCollection, combineResults,
 } from "./index";
 
@@ -379,6 +378,8 @@ describe("reduceCollection", () => {
     [], collectionResult([succ, msg, inc, err]), [msg, inc, err]);
   testReduceCollection("empty", "object", "object",
     [], propertiesResult({ succ, msg, inc, err }), [propertiesResult({ succ, msg, inc, err })]);
+  testReduceCollection("empty", "[collection]", "collection",
+    [], collectionResult([collectionResult([succ, msg, inc, err])]), [msg, inc, err]);
 
   testReduceCollection("[msg]", "success", "empty", [msg], succ, [msg]);
   testReduceCollection("[msg]", "message", "[message]", [msg], msg, [msg]);
@@ -445,271 +446,271 @@ describe("combineResults", () => {
   testCombineResults("[msg, succ, err]", "[msg, err]", [msg, succ, err], collectionResult([msg, err]));
 }); //    reduceCollection
 
-describe("combine", () => {
-  describe("Sanity checks", () => {
-    it("it should be a function", () =>
-      expect(typeof combine).toEqual("function"));
-  });    // Sanity checks
+// describe("combine", () => {
+//   describe("Sanity checks", () => {
+//     it("it should be a function", () =>
+//       expect(typeof combine).toEqual("function"));
+//   });    // Sanity checks
 
-  const testCombine = (
-    aname: string, bname: string, cname: string,
-    a: ValidationResult, b: ValidationResult, c: ValidationResult
-  ) =>
-    describe(`Given a ${aname} result`, () => {
-      describe(`When it is combined with a ${bname} result`, () => {
-        it(`it should give a ${cname} result`,
-          () => expect(combine(a, b)).toEqual(c));
-      }); //    When it is combined with a success result
-    }); //    Given a success result
+//   const testCombine = (
+//     aname: string, bname: string, cname: string,
+//     a: ValidationResult, b: ValidationResult, c: ValidationResult
+//   ) =>
+//     describe(`Given a ${aname} result`, () => {
+//       describe(`When it is combined with a ${bname} result`, () => {
+//         it(`it should give a ${cname} result`,
+//           () => expect(combine(a, b)).toEqual(c));
+//       }); //    When it is combined with a success result
+//     }); //    Given a success result
 
-  const succ = successResult();
-  const msg = messageResult("Hint");
-  const msg2 = messageResult("Hint #2");
-  const err = errorResult("Error");
-  const err2 = errorResult("Error #2");
-  const inc = inconclusiveResult("Inconclusive");
-  const inc2 = inconclusiveResult("Inconclusive #2");
-  const coll = collectionResult([err, msg]);
-  const coll2 = collectionResult([inc2, msg2]);
+//   const succ = successResult();
+//   const msg = messageResult("Hint");
+//   const msg2 = messageResult("Hint #2");
+//   const err = errorResult("Error");
+//   const err2 = errorResult("Error #2");
+//   const inc = inconclusiveResult("Inconclusive");
+//   const inc2 = inconclusiveResult("Inconclusive #2");
+//   const coll = collectionResult([err, msg]);
+//   const coll2 = collectionResult([inc2, msg2]);
 
-  // Atom + Atom
-  testCombine("success", "success", "success", succ, succ, succ);
-  testCombine("success", "message", "message", succ, msg, msg);
-  testCombine("success", "inconclusive", "inconclusive", succ, inc, inc);
-  testCombine("success", "error", "error", succ, err, err);
+//   // Atom + Atom
+//   testCombine("success", "success", "success", succ, succ, succ);
+//   testCombine("success", "message", "message", succ, msg, msg);
+//   testCombine("success", "inconclusive", "inconclusive", succ, inc, inc);
+//   testCombine("success", "error", "error", succ, err, err);
 
-  testCombine("message", "success", "message", msg, succ, msg);
-  testCombine("message", "message", "message", msg, msg, msg);
-  testCombine("message", "message 2", "collection", msg, msg2, collectionResult([msg, msg2]));
-  testCombine("message 2", "message", "collection", msg2, msg, collectionResult([msg2, msg]));
-  testCombine("message", "inconclusive", "collection", msg, inc, collectionResult([msg, inc]));
-  testCombine("message", "error", "collection", msg, err, collectionResult([msg, err]));
+//   testCombine("message", "success", "message", msg, succ, msg);
+//   testCombine("message", "message", "message", msg, msg, msg);
+//   testCombine("message", "message 2", "collection", msg, msg2, collectionResult([msg, msg2]));
+//   testCombine("message 2", "message", "collection", msg2, msg, collectionResult([msg2, msg]));
+//   testCombine("message", "inconclusive", "collection", msg, inc, collectionResult([msg, inc]));
+//   testCombine("message", "error", "collection", msg, err, collectionResult([msg, err]));
 
-  testCombine("inconclusive", "success", "inconclusive", inc, succ, inc);
-  testCombine("inconclusive", "message", "collection", inc, msg, collectionResult([inc, msg]));
-  testCombine("inconclusive", "inconclusive", "inconclusive", inc, inc, inc);
-  testCombine("inconclusive", "inconclusive 2", "collection", inc, inc2, collectionResult([inc, inc2]));
-  testCombine("inconclusive 2", "inconclusive", "collection", inc2, inc, collectionResult([inc2, inc]));
-  testCombine("inconclusive", "error", "collection", inc, err, collectionResult([inc, err]));
+//   testCombine("inconclusive", "success", "inconclusive", inc, succ, inc);
+//   testCombine("inconclusive", "message", "collection", inc, msg, collectionResult([inc, msg]));
+//   testCombine("inconclusive", "inconclusive", "inconclusive", inc, inc, inc);
+//   testCombine("inconclusive", "inconclusive 2", "collection", inc, inc2, collectionResult([inc, inc2]));
+//   testCombine("inconclusive 2", "inconclusive", "collection", inc2, inc, collectionResult([inc2, inc]));
+//   testCombine("inconclusive", "error", "collection", inc, err, collectionResult([inc, err]));
 
-  testCombine("error", "success", "error", err, succ, err);
-  testCombine("error", "message", "collection", err, msg, collectionResult([err, msg]));
-  testCombine("error", "inconclusive", "collection", err, inc, collectionResult([err, inc]));
-  testCombine("error", "error", "error", err, err, err);
-  testCombine("error", "error 2", "collection", err, err2, collectionResult([err, err2]));
-  testCombine("error 2", "error", "collection", err2, err, collectionResult([err2, err]));
+//   testCombine("error", "success", "error", err, succ, err);
+//   testCombine("error", "message", "collection", err, msg, collectionResult([err, msg]));
+//   testCombine("error", "inconclusive", "collection", err, inc, collectionResult([err, inc]));
+//   testCombine("error", "error", "error", err, err, err);
+//   testCombine("error", "error 2", "collection", err, err2, collectionResult([err, err2]));
+//   testCombine("error 2", "error", "collection", err2, err, collectionResult([err2, err]));
 
-  // Collection + (Atom | Collection)
-  testCombine("success", "collection", "collection", succ, coll, coll);
-  testCombine("collection", "success", "collection", coll, succ, coll);
+//   // Collection + (Atom | Collection)
+//   testCombine("success", "collection", "collection", succ, coll, coll);
+//   testCombine("collection", "success", "collection", coll, succ, coll);
 
-  testCombine("message", "collection", "collection", msg, coll, collectionResult([msg, err]));
-  testCombine("message 2", "collection", "combined collection", msg2, coll, collectionResult([msg2, err, msg]));
-  testCombine("collection", "message", "collection", coll, msg, coll);
-  testCombine("collection", "message 2", "combined collection", coll, msg2, collectionResult([err, msg, msg2]));
+//   testCombine("message", "collection", "collection", msg, coll, collectionResult([msg, err]));
+//   testCombine("message 2", "collection", "combined collection", msg2, coll, collectionResult([msg2, err, msg]));
+//   testCombine("collection", "message", "collection", coll, msg, coll);
+//   testCombine("collection", "message 2", "combined collection", coll, msg2, collectionResult([err, msg, msg2]));
 
-  testCombine("collection", "collection", "collection", coll, coll, coll);
-  testCombine("collection", "collection2", "combined collection", coll, coll2,
-    collectionResult([err, msg, inc2, msg2]));
+//   testCombine("collection", "collection", "collection", coll, coll, coll);
+//   testCombine("collection", "collection2", "combined collection", coll, coll2,
+//     collectionResult([err, msg, inc2, msg2]));
 
-}); //    combine
+// }); //    combine
 
-describe("keepErrorsOnly", () => {
-  describe("Sanity checks", () => {
-    it("it should be a function", () => expect(typeof keepErrorsOnly).toBe("function"));
-  }); //    Sanity checks
+// describe("keepErrorsOnly", () => {
+//   describe("Sanity checks", () => {
+//     it("it should be a function", () => expect(typeof keepErrorsOnly).toBe("function"));
+//   }); //    Sanity checks
 
-  describe("Keeping only errors from successful result", () => {
-    const current = keepErrorsOnly(successResult());
-    const expected = successResult();
-    it("it should give success",
-      () => expect(current).toEqual(expected));
-  }); //    Keeping only errors from successful result
+//   describe("Keeping only errors from successful result", () => {
+//     const current = keepErrorsOnly(successResult());
+//     const expected = successResult();
+//     it("it should give success",
+//       () => expect(current).toEqual(expected));
+//   }); //    Keeping only errors from successful result
 
-  describe("Keeping only errors from message result", () => {
-    const current = keepErrorsOnly(messageResult("message #1"));
-    const expected = successResult();
-    it("it should give success",
-      () => expect(current).toEqual(expected));
-  }); //    Keeping only errors from message result
+//   describe("Keeping only errors from message result", () => {
+//     const current = keepErrorsOnly(messageResult("message #1"));
+//     const expected = successResult();
+//     it("it should give success",
+//       () => expect(current).toEqual(expected));
+//   }); //    Keeping only errors from message result
 
-  describe("Keeping only errors from warning result", () => {
-    const current = keepErrorsOnly(messageResult("warning #1"));
-    const expected = successResult();
-    it("it should give success",
-      () => expect(current).toEqual(expected));
-  }); //    Keeping only errors from warning result
+//   describe("Keeping only errors from warning result", () => {
+//     const current = keepErrorsOnly(messageResult("warning #1"));
+//     const expected = successResult();
+//     it("it should give success",
+//       () => expect(current).toEqual(expected));
+//   }); //    Keeping only errors from warning result
 
-  describe("Keeping only errors from error result", () => {
-    const current = keepErrorsOnly(errorResult("error #1"));
-    const expected = errorResult("error #1");
-    it("it should give success",
-      () => expect(current).toEqual(expected));
-  }); //    Keeping only errors from error result
+//   describe("Keeping only errors from error result", () => {
+//     const current = keepErrorsOnly(errorResult("error #1"));
+//     const expected = errorResult("error #1");
+//     it("it should give success",
+//       () => expect(current).toEqual(expected));
+//   }); //    Keeping only errors from error result
 
-  describe("Keeping only errors from successful collection result", () => {
-    const current = keepErrorsOnly(collectionResult([
-      successResult(),
-      messageResult("message #1"),
-      messageResult("warning #2"),
-    ]));
-    const expected = successResult();
-    it("it should give success",
-      () => expect(current).toEqual(expected));
-  }); //    Keeping only errors from successful collection result
+//   describe("Keeping only errors from successful collection result", () => {
+//     const current = keepErrorsOnly(collectionResult([
+//       successResult(),
+//       messageResult("message #1"),
+//       messageResult("warning #2"),
+//     ]));
+//     const expected = successResult();
+//     it("it should give success",
+//       () => expect(current).toEqual(expected));
+//   }); //    Keeping only errors from successful collection result
 
-  describe("Keeping only errors from error collection result", () => {
-    describe("When the collection is flat", () => {
-      const current = keepErrorsOnly(collectionResult([
-        errorResult("error #1"),
-        successResult(),
-        messageResult("message #1"),
-        messageResult("warning #2"),
-        errorResult("error #2"),
-      ]));
-      const expected = collectionResult([
-        errorResult("error #1"),
-        errorResult("error #2"),
-      ]);
-      it("it should give error",
-        () => expect(current).toEqual(expected));
-    }); //    When the collection is flat
-    describe("When the collection is deep", () => {
-      const current = keepErrorsOnly(collectionResult([
-        collectionResult([
-          errorResult("error #1"),
-          successResult(),
-          messageResult("message #1"),
-          messageResult("warning #2"),
-          errorResult("error #2"),
-        ]),
-        successResult(),
-        messageResult("message #3"),
-        messageResult("warning #4"),
-        errorResult("error #5"),
-        collectionResult([
-          successResult(),
-          messageResult("message #6"),
-          messageResult("warning #7"),
-        ]),
-      ]));
-      const expected = collectionResult([
-        collectionResult([
-          errorResult("error #1"),
-          errorResult("error #2"),
-        ]),
-        errorResult("error #5"),
-      ]);
-      it("it should give error",
-        () => expect(current).toEqual(expected));
-    }); //    When the collection is flat
-    describe("When the collection has only errors", () => {
-      const current = keepErrorsOnly(collectionResult([
-        errorResult("error #1"),
-        collectionResult([
-          errorResult("error #2"),
-          errorResult("error #3"),
-        ]),
-        errorResult("error #4"),
-      ]));
-      const expected = collectionResult([
-        errorResult("error #1"),
-        collectionResult([
-          errorResult("error #2"),
-          errorResult("error #3"),
-        ]),
-        errorResult("error #4"),
-      ]);
-      it("it should give error",
-        () => expect(current).toEqual(expected));
-    }); //    When the collection is flat
-  }); //    Keeping only errors from error collection result
+//   describe("Keeping only errors from error collection result", () => {
+//     describe("When the collection is flat", () => {
+//       const current = keepErrorsOnly(collectionResult([
+//         errorResult("error #1"),
+//         successResult(),
+//         messageResult("message #1"),
+//         messageResult("warning #2"),
+//         errorResult("error #2"),
+//       ]));
+//       const expected = collectionResult([
+//         errorResult("error #1"),
+//         errorResult("error #2"),
+//       ]);
+//       it("it should give error",
+//         () => expect(current).toEqual(expected));
+//     }); //    When the collection is flat
+//     describe("When the collection is deep", () => {
+//       const current = keepErrorsOnly(collectionResult([
+//         collectionResult([
+//           errorResult("error #1"),
+//           successResult(),
+//           messageResult("message #1"),
+//           messageResult("warning #2"),
+//           errorResult("error #2"),
+//         ]),
+//         successResult(),
+//         messageResult("message #3"),
+//         messageResult("warning #4"),
+//         errorResult("error #5"),
+//         collectionResult([
+//           successResult(),
+//           messageResult("message #6"),
+//           messageResult("warning #7"),
+//         ]),
+//       ]));
+//       const expected = collectionResult([
+//         collectionResult([
+//           errorResult("error #1"),
+//           errorResult("error #2"),
+//         ]),
+//         errorResult("error #5"),
+//       ]);
+//       it("it should give error",
+//         () => expect(current).toEqual(expected));
+//     }); //    When the collection is flat
+//     describe("When the collection has only errors", () => {
+//       const current = keepErrorsOnly(collectionResult([
+//         errorResult("error #1"),
+//         collectionResult([
+//           errorResult("error #2"),
+//           errorResult("error #3"),
+//         ]),
+//         errorResult("error #4"),
+//       ]));
+//       const expected = collectionResult([
+//         errorResult("error #1"),
+//         collectionResult([
+//           errorResult("error #2"),
+//           errorResult("error #3"),
+//         ]),
+//         errorResult("error #4"),
+//       ]);
+//       it("it should give error",
+//         () => expect(current).toEqual(expected));
+//     }); //    When the collection is flat
+//   }); //    Keeping only errors from error collection result
 
-  describe("Keeping only errors from successful object result", () => {
-    const current = keepErrorsOnly(objectResult([
-      { property: "prop2", result: successResult() },
-      { property: "prop3", result: messageResult("message #1") },
-      { property: "prop4", result: messageResult("warning #2") },
-    ]));
-    const expected = successResult();
-    it("it should give success",
-      () => expect(current).toEqual(expected));
-  }); //    Keeping only errors from successful object result
+//   describe("Keeping only errors from successful object result", () => {
+//     const current = keepErrorsOnly(objectResult([
+//       { property: "prop2", result: successResult() },
+//       { property: "prop3", result: messageResult("message #1") },
+//       { property: "prop4", result: messageResult("warning #2") },
+//     ]));
+//     const expected = successResult();
+//     it("it should give success",
+//       () => expect(current).toEqual(expected));
+//   }); //    Keeping only errors from successful object result
 
-  describe("Keeping only errors from error object result", () => {
-    describe("When the object is flat", () => {
-      const current = keepErrorsOnly(objectResult([
-        { property: "prop1", result: errorResult("error #1") },
-        { property: "prop2", result: successResult() },
-        { property: "prop3", result: messageResult("message #1") },
-        { property: "prop4", result: messageResult("warning #2") },
-        { property: "prop5", result: errorResult("error #2") },
-      ]));
-      const expected = objectResult([
-        { property: "prop1", result: errorResult("error #1") },
-        { property: "prop5", result: errorResult("error #2") },
-      ]);
-      it("it should give error",
-        () => expect(current).toEqual(expected));
-    }); //    When the object is flat
-    describe("When the object is deep", () => {
-      const current = keepErrorsOnly(objectResult([
-        {
-          property: "prop1", result: objectResult([
-            { property: "prop2", result: errorResult("error #1") },
-            { property: "prop3", result: successResult() },
-            { property: "prop4", result: messageResult("message #1") },
-            { property: "prop5", result: messageResult("warning #2") },
-            { property: "prop6", result: errorResult("error #2") },
-          ]),
-        },
-        { property: "prop7", result: successResult() },
-        { property: "prop8", result: messageResult("message #3") },
-        { property: "prop9", result: messageResult("warning #4") },
-        { property: "prop10", result: errorResult("error #5") },
-        {
-          property: "prop11", result: objectResult([
-            { property: "prop12", result: successResult() },
-            { property: "prop13", result: messageResult("message #6") },
-            { property: "prop14", result: messageResult("warning #7") },
-          ]),
-        },
-      ]));
-      const expected = objectResult([
-        {
-          property: "prop1", result: objectResult([
-            { property: "prop2", result: errorResult("error #1") },
-            { property: "prop6", result: errorResult("error #2") },
-          ]),
-        },
-        { property: "prop10", result: errorResult("error #5") },
-      ]);
-      it("it should give error",
-        () => expect(current).toEqual(expected));
-    }); //    When the object is flat
-    describe("When the object has only errors", () => {
-      const current = keepErrorsOnly(objectResult([
-        { property: "prop1", result: errorResult("error #1") },
-        {
-          property: "prop2", result: objectResult([
-            { property: "prop3", result: errorResult("error #2") },
-            { property: "prop4", result: errorResult("error #3") },
-          ]),
-        },
-        { property: "prop5", result: errorResult("error #4") },
-      ]));
-      const expected = objectResult([
-        { property: "prop1", result: errorResult("error #1") },
-        {
-          property: "prop2", result: objectResult([
-            { property: "prop3", result: errorResult("error #2") },
-            { property: "prop4", result: errorResult("error #3") },
-          ]),
-        },
-        { property: "prop5", result: errorResult("error #4") },
-      ]);
-      it("it should give error",
-        () => expect(current).toEqual(expected));
-    }); //    When the object is flat
-  }); //    Keeping only errors from error object result
-}); //    keepErrorsOnly
+//   describe("Keeping only errors from error object result", () => {
+//     describe("When the object is flat", () => {
+//       const current = keepErrorsOnly(objectResult([
+//         { property: "prop1", result: errorResult("error #1") },
+//         { property: "prop2", result: successResult() },
+//         { property: "prop3", result: messageResult("message #1") },
+//         { property: "prop4", result: messageResult("warning #2") },
+//         { property: "prop5", result: errorResult("error #2") },
+//       ]));
+//       const expected = objectResult([
+//         { property: "prop1", result: errorResult("error #1") },
+//         { property: "prop5", result: errorResult("error #2") },
+//       ]);
+//       it("it should give error",
+//         () => expect(current).toEqual(expected));
+//     }); //    When the object is flat
+//     describe("When the object is deep", () => {
+//       const current = keepErrorsOnly(objectResult([
+//         {
+//           property: "prop1", result: objectResult([
+//             { property: "prop2", result: errorResult("error #1") },
+//             { property: "prop3", result: successResult() },
+//             { property: "prop4", result: messageResult("message #1") },
+//             { property: "prop5", result: messageResult("warning #2") },
+//             { property: "prop6", result: errorResult("error #2") },
+//           ]),
+//         },
+//         { property: "prop7", result: successResult() },
+//         { property: "prop8", result: messageResult("message #3") },
+//         { property: "prop9", result: messageResult("warning #4") },
+//         { property: "prop10", result: errorResult("error #5") },
+//         {
+//           property: "prop11", result: objectResult([
+//             { property: "prop12", result: successResult() },
+//             { property: "prop13", result: messageResult("message #6") },
+//             { property: "prop14", result: messageResult("warning #7") },
+//           ]),
+//         },
+//       ]));
+//       const expected = objectResult([
+//         {
+//           property: "prop1", result: objectResult([
+//             { property: "prop2", result: errorResult("error #1") },
+//             { property: "prop6", result: errorResult("error #2") },
+//           ]),
+//         },
+//         { property: "prop10", result: errorResult("error #5") },
+//       ]);
+//       it("it should give error",
+//         () => expect(current).toEqual(expected));
+//     }); //    When the object is flat
+//     describe("When the object has only errors", () => {
+//       const current = keepErrorsOnly(objectResult([
+//         { property: "prop1", result: errorResult("error #1") },
+//         {
+//           property: "prop2", result: objectResult([
+//             { property: "prop3", result: errorResult("error #2") },
+//             { property: "prop4", result: errorResult("error #3") },
+//           ]),
+//         },
+//         { property: "prop5", result: errorResult("error #4") },
+//       ]));
+//       const expected = objectResult([
+//         { property: "prop1", result: errorResult("error #1") },
+//         {
+//           property: "prop2", result: objectResult([
+//             { property: "prop3", result: errorResult("error #2") },
+//             { property: "prop4", result: errorResult("error #3") },
+//           ]),
+//         },
+//         { property: "prop5", result: errorResult("error #4") },
+//       ]);
+//       it("it should give error",
+//         () => expect(current).toEqual(expected));
+//     }); //    When the object is flat
+//   }); //    Keeping only errors from error object result
+// }); //    keepErrorsOnly

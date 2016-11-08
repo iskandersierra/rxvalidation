@@ -82,6 +82,14 @@ export const collectionResult = (results: ValidationResult[]): CollectionResult 
 };
 
 export const objectResult = (properties: PropertyValidation[]): ObjectResult => {
+    if (properties.length === 0) {
+        return assign(baseResult("success"), {
+            kind: "object" as "object",
+            properties: [],
+            message: "",
+        });
+    }
+
     const type = properties.map(r => r.result.type).reduce(getWorstType, "success");
     const message = properties
         .reduce((acc, r) => newLineIfNeeded(acc) + newLineIfNeeded(r.property) + r.result.message, "");
@@ -132,50 +140,39 @@ export const combineResults = (results: ValidationResult[]): ValidationResult =>
     const reduced = results.reduce(reduceCollection, []);
     if (reduced.length === 0) { return successResult(); }
     if (reduced.length === 1) {
-        const result = reduced[0];
-        if (result.kind === "collection") {
-            return combineResults(result.results);
-        } else {
-            return result;
-        }
+        return reduced[0];
     }
     return collectionResult(reduced);
 };
 
-export const combine = (...results: ValidationResult[]): ValidationResult => {
-    // if (a.kind === "success") { return b; }
-    // if (b.kind === "success") { return a; }
-    return combineResults(results);
-};
+// export const combineWorst = (a: ValidationResult, b: ValidationResult): ValidationResult => {
+//     return a;
+// };
 
-export const combineWorst = (a: ValidationResult, b: ValidationResult): ValidationResult => {
-    return a;
-};
-
-export const keepErrorsOnly =
-    (result: ValidationResult): ValidationResult => {
-        if (!result.isError) {
-            return successResult();
-        }
-        if (result.kind === "collection") {
-            const errorResults = result.results
-                .filter(r => r.isError)
-                .map(r => keepErrorsOnly(r));
-            if (errorResults.length === result.results.length) {
-                return result;
-            } else {
-                return collectionResult(errorResults);
-            }
-        } else if (result.kind === "object") {
-            const errorProperties = result.properties
-                .filter(p => p.result.isError)
-                .map(p => ({ property: p.property, result: keepErrorsOnly(p.result) }));
-            if (errorProperties.length === result.properties.length) {
-                return result;
-            } else {
-                return objectResult(errorProperties);
-            }
-        } else {
-            return result;
-        }
-    };
+// export const keepErrorsOnly =
+//     (result: ValidationResult): ValidationResult => {
+//         if (!result.isError) {
+//             return successResult();
+//         }
+//         if (result.kind === "collection") {
+//             const errorResults = result.results
+//                 .filter(r => r.isError)
+//                 .map(r => keepErrorsOnly(r));
+//             if (errorResults.length === result.results.length) {
+//                 return result;
+//             } else {
+//                 return collectionResult(errorResults);
+//             }
+//         } else if (result.kind === "object") {
+//             const errorProperties = result.properties
+//                 .filter(p => p.result.isError)
+//                 .map(p => ({ property: p.property, result: keepErrorsOnly(p.result) }));
+//             if (errorProperties.length === result.properties.length) {
+//                 return result;
+//             } else {
+//                 return objectResult(errorProperties);
+//             }
+//         } else {
+//             return result;
+//         }
+//     };
