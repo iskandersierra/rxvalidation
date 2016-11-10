@@ -13,7 +13,7 @@ import {
   ValidationResult, PropertyValidation,
   successResult, messageResult, errorResult, inconclusiveResult,
   propertiesResult, objectResult,
-  combineResults,
+  collectResults,
 } from "./ValidationResult";
 import * as utils from "./internalValidators";
 
@@ -46,7 +46,7 @@ export const collect = (...validators: Validator[]): Validator => {
   if (validators.length === 1) { return validators[0]; }
   return (value: any) => {
     const validations = validators.map(v => v(value));
-    const mapper = (...results: ValidationResult[]) => combineResults(results);
+    const mapper = (...results: ValidationResult[]) => collectResults(results);
     return Observable.combineLatest<ValidationResult>(...validations, mapper);
   };
 };
