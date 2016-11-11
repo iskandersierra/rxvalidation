@@ -1,4 +1,9 @@
-import { BoolValidator } from "./Validator";
+import {
+  BoolValidator, MessageValidator, SyncValidator, Validator,
+} from "./Validator";
+import {
+  successResult, messageResult, errorResult,
+} from "./ValidationResult";
 
 export const compose = <Z, Y, X>(
   f: (y: Y) => Z,
@@ -31,3 +36,21 @@ export const isAll =
   (...validators: BoolValidator[]): BoolValidator =>
     (v: any) =>
       validators.reduce((a, val) => a && val(v), true);
+
+export const b2m /* bool-to-message Validator */ = (
+  msg: string, validator: BoolValidator
+): MessageValidator =>
+  (value: any) => validator(value) ? "" : (msg || "Error");
+
+export const b2s /* bool-to-sync Validator */ = (
+  msg: string, validator: BoolValidator
+): SyncValidator =>
+  (value: any) => validator(value) ? successResult() : errorResult(msg || "Error");
+
+export const m2s /* message-to-sync Validator */ = (
+  validator: MessageValidator
+): SyncValidator =>
+  (value: any) => {
+    const msg = validator(value);
+    return msg === "" ? successResult() : errorResult(msg);
+  };

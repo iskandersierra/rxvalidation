@@ -3,8 +3,11 @@
 import "jest";
 require("babel-core/register");
 require("babel-polyfill");
+import { Observable } from "rxjs/Observable";
+import "rxjs/add/operator/toPromise";
 import {
-  BoolValidator,
+  ValidationResult,
+  BoolValidator, MessageValidator, SyncValidator, Validator,
 } from "./index";
 
 export const testFunctionNames = (o: Object, names: string[]) => {
@@ -40,6 +43,95 @@ export const testBoolValidators = (
       }
       if (!someError) {
         it(`${name}(...) should evaluate as expected`, () => { return; });
+      }
+    }); //     
+  });
+};
+
+export const testMessageValidators = (
+  o: Object,
+  values: any[],
+  expected: { [name: string]: string }
+) => {
+  const X = "X".charAt(0);
+  Object.keys(expected).forEach(name => {
+    const fn: MessageValidator = o[name];
+    describe(name, () => {
+      let someError = false;
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        const expectedValue = i < expected[name].length ? expected[name].charAt(i) === X : false;
+        const msg = fn(value);
+        if ((msg === "") !== expectedValue) {
+          someError = true;
+          if (expectedValue) {
+            it(`${name}(${JSON.stringify(value)}) should return an empty message`,
+              () => expect(!expectedValue).toBe(expectedValue));
+          } else {
+            it(`${name}(${JSON.stringify(value)}) should return an error message`,
+              () => expect(!expectedValue).toBe(expectedValue));
+          }
+        }
+      }
+      if (!someError) {
+        it(`${name}(...) should evaluate as expected`, () => { return; });
+      }
+    }); //     
+  });
+};
+
+export const testSyncValidators = (
+  o: Object,
+  values: any[],
+  expected: { [name: string]: string }
+) => {
+  const X = "X".charAt(0);
+  Object.keys(expected).forEach(name => {
+    const fn: SyncValidator = o[name];
+    describe(name, () => {
+      let someError = false;
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        const expectedValue = i < expected[name].length ? expected[name].charAt(i) === X : false;
+        const res = fn(value);
+        if (res.isSuccess !== expectedValue) {
+          someError = true;
+          if (expectedValue) {
+            it(`${name}(${JSON.stringify(value)}) should return a success result`,
+              () => expect(!expectedValue).toBe(expectedValue));
+          } else {
+            it(`${name}(${JSON.stringify(value)}) should return an error result`,
+              () => expect(!expectedValue).toBe(expectedValue));
+          }
+        }
+      }
+      if (!someError) {
+        it(`${name}(...) should evaluate as expected`, () => { return; });
+      }
+    }); //     
+  });
+};
+
+export const testValidators = (
+  o: Object,
+  values: any[],
+  expected: { [name: string]: string }
+) => {
+  const X = "X".charAt(0);
+  Object.keys(expected).forEach(name => {
+    const fn: Validator = o[name];
+    describe(name, () => {
+      let someError = false;
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        const expectedValue = i < expected[name].length ? expected[name].charAt(i) === X : false;
+        if (expectedValue) {
+          it(`${name}(${JSON.stringify(value)}) should return a success result`,
+            () => fn(value).toPromise().then(v => expect(v.isSuccess).toBeTruthy()));
+        } else {
+          it(`${name}(${JSON.stringify(value)}) should return an error result`,
+            () => fn(value).toPromise().then(v => expect(v.isError).toBeTruthy()));
+        }
       }
     }); //     
   });
