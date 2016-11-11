@@ -3,7 +3,7 @@ import "rxjs/add/observable/of";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/switchMap";
 import { ValidationResult, successResult, errorResult } from "./ValidationResult";
-import { isEmpty, compose, compose3, compose4 } from "./internalValidators";
+import { isEmpty, compose, compose3, compose4 } from "./internal";
 
 export type Validator = (value: any) => Observable<ValidationResult>;
 

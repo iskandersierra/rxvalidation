@@ -5,9 +5,9 @@ require("babel-core/register");
 require("babel-polyfill");
 
 import {
-  successResult, messageResult, warningResult,
+  successResult, messageResult,
   errorResult, collectionResult, objectResult,
-  keepErrorsOnly, Validator, BoolValidator,
+  Validator, BoolValidator,
 } from "./index";
 import {
   compose, compose3, compose4,
@@ -16,7 +16,7 @@ import {
   isObject, isString, isSymbol, isUndefined,
   isNullOrUndefined, isDefined, isEmpty, isNonEmpty,
   isRequired,
-} from "./internalValidators";
+} from "./internal";
 
 const testBoolValidator = (
   name: string, validator: BoolValidator,

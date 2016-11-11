@@ -15,7 +15,7 @@ import {
   propertiesResult, objectResult,
   collectResults,
 } from "./ValidationResult";
-import * as utils from "./internalValidators";
+import * as utils from "./internal";
 
 export const success: Validator = (value: any) =>
   Observable.of<ValidationResult>(successResult());

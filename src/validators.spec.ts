@@ -7,7 +7,7 @@ require("babel-polyfill");
 import {
   successResult,
   errorResult, collectionResult, objectResult,
-  keepErrorsOnly, Validator,
+  Validator,
   isRequired,
 } from "./index";
 
