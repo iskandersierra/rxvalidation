@@ -9,7 +9,7 @@ import {
   successResult, messageResult, inconclusiveResult, errorResult,
   collectionResult, objectResult, propertiesResult,
   getWorstType,
-  reduceCollection, collectResults, combineResults,
+  reduceCollection, collectResults, combineResults, bindResults,
 } from "./index";
 
 describe("successResult", () => {
@@ -478,4 +478,43 @@ describe("combineResults", () => {
   testCombineResults("{field1...field4}", "{field1...field4}",
     { field1: succ, field2: msg, field3: inc, field4: coll },
     propertiesResult({ field1: succ, field2: msg, field3: inc, field4: coll }));
+}); //    reduceCollection
+
+describe("bindResults", () => {
+  describe("Sanity checks", () => {
+    it("it should be a function",
+      () => expect(typeof bindResults).toBe("function"));
+  }); //    Sanity checks
+
+  const testBindResults = (
+    aname: string, bname: string,
+    a: ValidationResult[], b: ValidationResult) =>
+    describe(`Given a ${aname} results`, () => {
+      describe(`When they are collected as results`, () => {
+        it(`it should be reduced to ${bname}`,
+          () => expect(bindResults(a)).toEqual(b));
+      }); //    When it is reduced with ${bname} result
+    });
+
+  const succ = successResult();
+  const msg = messageResult("Hint");
+  const msg2 = messageResult("Hint #2");
+  const err = errorResult("Error");
+  const err2 = errorResult("Error #2");
+  const inc = inconclusiveResult("Inconclusive");
+  const inc2 = inconclusiveResult("Inconclusive #2");
+  const coll = collectionResult([err, msg]);
+  const coll2 = collectionResult([inc2, msg2]);
+
+  testBindResults("empty", "success", [], succ);
+  testBindResults("[succ]", "success", [succ], succ);
+  testBindResults("[succ, succ]", "success", [succ, succ], succ);
+  testBindResults("[succ, message, succ]", "message", [succ, msg, succ], msg);
+  testBindResults("[succ, inconclusive, succ]", "inconclusive", [succ, inc, succ], inc);
+  testBindResults("[succ, error, succ]", "error", [succ, err, succ], err);
+  testBindResults("[msg, msg]", "message", [msg, msg], msg);
+  testBindResults("[msg, msg2]", "[msg, msg2]", [msg, msg2], collectionResult([msg, msg2]));
+  testBindResults("[err, err]", "message", [err, err], err);
+  testBindResults("[err, err2]", "[err, err2]", [err, err2], err);
+  testBindResults("[msg, succ, err, inc]", "[msg, err]", [msg, succ, err, inc], collectionResult([msg, err]));
 }); //    reduceCollection

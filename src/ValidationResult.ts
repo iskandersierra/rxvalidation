@@ -136,15 +136,18 @@ export const reduceCollection = (results: ValidationResult[], result: Validation
     }
 };
 
+export const getSimplestResults = (results: ValidationResult[]): ValidationResult => {
+    if (results.length === 0) { return successResult(); }
+    if (results.length === 1) { return results[0]; }
+    return collectionResult(results);
+};
+
+
 export const collectResults = (
     results: ValidationResult[]
 ): ValidationResult => {
     const reduced = results.reduce(reduceCollection, []);
-    if (reduced.length === 0) { return successResult(); }
-    if (reduced.length === 1) {
-        return reduced[0];
-    }
-    return collectionResult(reduced);
+    return getSimplestResults(reduced);
 };
 
 export const combineResults = (
@@ -157,4 +160,19 @@ export const combineResults = (
         return { property, result: vr };
     }));
     return result;
+};
+
+export const bindResults = (
+    results: ValidationResult[]
+): ValidationResult => {
+    const compute = (index: number, current: ValidationResult[]): ValidationResult[] => {
+        if (index >= results.length) { return current; }
+        const next = results[index];
+        if (next.isError) {
+            return [...current, next];
+        }
+        return compute(index + 1, [...current, next]);
+    };
+    const bound = compute(0, []);
+    return collectResults(bound);
 };
