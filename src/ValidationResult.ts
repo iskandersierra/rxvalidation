@@ -142,7 +142,6 @@ export const getSimplestResults = (results: ValidationResult[]): ValidationResul
     return collectionResult(results);
 };
 
-
 export const collectResults = (
     results: ValidationResult[]
 ): ValidationResult => {

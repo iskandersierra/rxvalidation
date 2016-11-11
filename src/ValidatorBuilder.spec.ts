@@ -9,7 +9,7 @@ import "rxjs/add/operator/toArray";
 import "rxjs/add/operator/toPromise";
 import {
   success, message, inconclusive, error,
-  startWith, startInconclusive, delay, collect, compose,
+  startWith, startInconclusive, delay, collect, compose, bind,
   ValidatorMonad,
   successResult, messageResult, inconclusiveResult, errorResult,
   collectionResult, objectResult, propertiesResult,
@@ -90,7 +90,11 @@ describe("operators", () => {
     describe("Given one validator", () => {
       const validator = startInconclusive(delay(10)(error("Error")));
       it("collect should return the same validator", () =>
-        expect(collect(validator)).toBe(validator));
+        collect(validator)(1).toArray().toPromise()
+          .then(r => expect(r).toEqual([
+            inconclusiveResult(),
+            errorResult("Error"),
+          ])));
     }); //    Given no validators
 
     describe("Given two validators", () => {
@@ -146,6 +150,80 @@ describe("operators", () => {
           ])));
     }); //    Given no validators
   }); //    compose
+
+  describe("bind", () => {
+    describe("Sanity checks", () => {
+      it("bind should be a function",
+        () => expect(typeof bind).toBe("function"));
+    }); //    Sanity checks
+
+    describe("Given first validator with success and next one with success", () => {
+      const validator1 = startInconclusive(delay(10)(success));
+      const validator2 = startInconclusive(delay(20)(success));
+      it("bind should return a success validation", () =>
+        bind(validator1, validator2)(1).toArray().toPromise()
+          .then(r => expect(r).toEqual([
+            inconclusiveResult(),
+            successResult(),
+            inconclusiveResult(),
+            successResult(),
+          ])));
+    });
+
+    describe("Given first validator with success and next one with error", () => {
+      const validator1 = startInconclusive(delay(10)(success));
+      const validator2 = startInconclusive(delay(20)(error("Error")));
+      it("bind should return an error result", () =>
+        bind(validator1, validator2)(1).toArray().toPromise()
+          .then(r => expect(r).toEqual([
+            inconclusiveResult(),
+            successResult(),
+            inconclusiveResult(),
+            errorResult("Error"),
+          ])));
+    });
+
+    describe("Given first validator with message and next one with error", () => {
+      const validator1 = startInconclusive(delay(10)(message("Hint")));
+      const validator2 = startInconclusive(delay(20)(error("Error")));
+      it("bind should return the message and error results", () =>
+        bind(validator1, validator2)(1).toArray().toPromise()
+          .then(r => expect(r).toEqual([
+            inconclusiveResult(),
+            messageResult("Hint"),
+            collectionResult([
+              messageResult("Hint"),
+              inconclusiveResult(),
+            ]),
+            collectionResult([
+              messageResult("Hint"),
+              errorResult("Error"),
+            ]),
+          ])));
+    });
+
+    describe("Given first validator with error and next one with message", () => {
+      const validator1 = startInconclusive(delay(20)(error("Error")));
+      const validator2 = startInconclusive(delay(10)(message("Hint")));
+      it("bind should return only the first error", () =>
+        bind(validator1, validator2)(1).toArray().toPromise()
+          .then(r => expect(r).toEqual([
+            inconclusiveResult(),
+            errorResult("Error"),
+          ])));
+    });
+
+    describe("Given first validator with error and next one with error", () => {
+      const validator1 = startInconclusive(delay(10)(error("Error 1")));
+      const validator2 = startInconclusive(delay(20)(error("Error 2")));
+      it("bind should return only the first error", () =>
+        bind(validator1, validator2)(1).toArray().toPromise()
+          .then(r => expect(r).toEqual([
+            inconclusiveResult(),
+            errorResult("Error 1"),
+          ])));
+    });
+  }); //    bind
 }); //    operators
 
 describe("ValidatorMonad", () => {
@@ -170,6 +248,8 @@ describe("ValidatorMonad", () => {
       () => expect(ValidatorMonad.collect).toBe(collect));
     it("Monad's compose should be equal to compose",
       () => expect(ValidatorMonad.compose).toBe(compose));
+    it("Monad's bind should be equal to bind",
+      () => expect(ValidatorMonad.bind).toBe(bind));
   }); //    Sanity checks
 
 }); //    ValidatorMonad
