@@ -1,4 +1,4 @@
 export * from "./ValidationResult";
 export * from "./Validator";
-export * from "./validators";
 export * from "./ValidatorBuilder";
+export * from "./common";

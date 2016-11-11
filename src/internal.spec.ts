@@ -12,10 +12,10 @@ import {
 import {
   compose, compose3, compose4,
   isNot, isEither, isAll,
-  isArray, isBoolean, isFunction, isNull, isNumber, isNaNNumber, isFiniteNumber,
-  isObject, isString, isSymbol, isUndefined,
-  isNullOrUndefined, isDefined, isEmpty, isNonEmpty,
-  isRequired,
+  // isArray, isBoolean, isFunction, isNull, isNumber, isNaNNumber, isFiniteNumber,
+  // isObject, isString, isSymbol, isUndefined,
+  // isNullOrUndefined, isDefined, isEmpty, isNonEmpty,
+  // isRequired,
 } from "./internal";
 
 const testBoolValidator = (
@@ -90,78 +90,78 @@ describe("Testing validators", () => {
       () => expect(isAll(a => true, a => true)("")).toBe(true));
   }); //    isAll
 
-  testBoolValidator("isArray", isArray,
-    [[], [1, 2, 3], Array(4), Array<string>(10), Array(1, 2, 3, 4, 5)],
-    [null, undefined, "", 0, false, 5, "abc", {}],
-  );
+  //   testBoolValidator("isArray", isArray,
+  //     [[], [1, 2, 3], Array(4), Array<string>(10), Array(1, 2, 3, 4, 5)],
+  //     [null, undefined, "", 0, false, 5, "abc", {}],
+  //   );
 
-  testBoolValidator("isBoolean", isBoolean,
-    [true, false, Boolean(3)],
-    [null, undefined, "", 0, 5, "abc", {}, []],
-  );
+  //   testBoolValidator("isBoolean", isBoolean,
+  //     [true, false, Boolean(3)],
+  //     [null, undefined, "", 0, 5, "abc", {}, []],
+  //   );
 
-  testBoolValidator("isFunction", isFunction,
-    [isNot, a => a, JSON.stringify],
-    [null, undefined, "", 0, 5, "abc", {}, [], true, false],
-  );
+  //   testBoolValidator("isFunction", isFunction,
+  //     [isNot, a => a, JSON.stringify],
+  //     [null, undefined, "", 0, 5, "abc", {}, [], true, false],
+  //   );
 
-  testBoolValidator("isUndefined", isUndefined,
-    [undefined],
-    [null, true, false, "", 0, 5, "abc", {}, []],
-  );
+  //   testBoolValidator("isUndefined", isUndefined,
+  //     [undefined],
+  //     [null, true, false, "", 0, 5, "abc", {}, []],
+  //   );
 
-  testBoolValidator("isNull", isNull,
-    [null],
-    [undefined, true, false, "", 0, 5, "abc", {}, []],
-  );
+  //   testBoolValidator("isNull", isNull,
+  //     [null],
+  //     [undefined, true, false, "", 0, 5, "abc", {}, []],
+  //   );
 
-  testBoolValidator("isNumber", isNumber,
-    [0, 5, NaN, Infinity, Number(23)],
-    [null, undefined, "", true, false, "5", {}, []],
-  );
+  //   testBoolValidator("isNumber", isNumber,
+  //     [0, 5, NaN, Infinity, Number(23)],
+  //     [null, undefined, "", true, false, "5", {}, []],
+  //   );
 
-  testBoolValidator("isNaNNumber", isNaNNumber,
-    [NaN],
-    [0, 5, Infinity, Number("23"), undefined, {}, null, "", true, false, "5", []],
-  );
+  //   testBoolValidator("isNaNNumber", isNaNNumber,
+  //     [NaN],
+  //     [0, 5, Infinity, Number("23"), undefined, {}, null, "", true, false, "5", []],
+  //   );
 
-  testBoolValidator("isFiniteNumber", isFiniteNumber,
-    [0, 5, Number("23")],
-    [null, undefined, NaN, Infinity, "", true, false, "5", {}, []],
-  );
+  //   testBoolValidator("isFiniteNumber", isFiniteNumber,
+  //     [0, 5, Number("23")],
+  //     [null, undefined, NaN, Infinity, "", true, false, "5", {}, []],
+  //   );
 
-  testBoolValidator("isString", isString,
-    ["", "abc", String(45), String({})],
-    [null, undefined, true, false, {}, []],
-  );
+  //   testBoolValidator("isString", isString,
+  //     ["", "abc", String(45), String({})],
+  //     [null, undefined, true, false, {}, []],
+  //   );
 
-  testBoolValidator("isSymbol", isSymbol,
-    [],
-    [null, undefined, true, false, {}, [], "abc"],
-  );
+  //   testBoolValidator("isSymbol", isSymbol,
+  //     [],
+  //     [null, undefined, true, false, {}, [], "abc"],
+  //   );
 
-  testBoolValidator("isObject", isObject,
-    [null, {}, []],
-    [undefined, true, false, "abc"],
-  );
+  //   testBoolValidator("isObject", isObject,
+  //     [null, {}, []],
+  //     [undefined, true, false, "abc"],
+  //   );
 
-  testBoolValidator("isNullOrUndefined", isNullOrUndefined,
-    [null, undefined],
-    ["", 0, false, 5, "abc", {}, []],
-  );
+  //   testBoolValidator("isNullOrUndefined", isNullOrUndefined,
+  //     [null, undefined],
+  //     ["", 0, false, 5, "abc", {}, []],
+  //   );
 
-  testBoolValidator("isDefined", isDefined,
-    ["", 0, false, 5, "abc", {}, []],
-    [null, undefined],
-  );
+  //   testBoolValidator("isDefined", isDefined,
+  //     ["", 0, false, 5, "abc", {}, []],
+  //     [null, undefined],
+  //   );
 
-  testBoolValidator("isEmpty", isEmpty,
-    [""],
-    [null, undefined, 0, false, 5, "abc", {}, []],
-  );
+  //   testBoolValidator("isEmpty", isEmpty,
+  //     [""],
+  //     [null, undefined, 0, false, 5, "abc", {}, []],
+  //   );
 
-  testBoolValidator("isNonEmpty", isNonEmpty,
-    ["abc"],
-    [null, undefined, 0, false, 5, "", {}, []],
-  );
+  //   testBoolValidator("isNonEmpty", isNonEmpty,
+  //     ["abc"],
+  //     [null, undefined, 0, false, 5, "", {}, []],
+  //   );
 }); //    Testing validators
